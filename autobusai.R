@@ -141,29 +141,6 @@ persp(t, t, cov_mat,xlab = "Valanda",ylab = "Valanda",zlab = "",
 image(t, t, cov_mat,xlab = "Valanda",ylab = "Valanda",col = heat.colors(100))
 contour(t, t, cov_mat, col= "black", add = TRUE)
 
-#Piko intesyvumas:
-eval_points <- seq(min(argvals), max(argvals), length=100)
-values <- eval.fd(eval_points, spec)
-morning_peak <- colMeans(values[eval_points >=6 & eval_points <=10, ])
-evening_peak <- colMeans(values[eval_points >=16 & eval_points <=19, ])
-peak_data <- data.frame(
-  route = colnames(values),
-  morning = morning_peak,
-  evening = evening_peak)
-peak_data$ratio <- peak_data$morning / peak_data$evening
-peak_data
-ryto<-peak_data%>%filter(ratio>1)
-ryto
-
-#popul marsrut:
-total_passengers <- apply(values, 2, sum)
-data.frame(route = colnames(values),total = total_passengers)
-
-#piko laikas:
-peak_hour <- apply(values, 2, function(x){eval_points[which.max(x)]})
-data.frame(route = colnames(values),peak_hour = peak_hour)
-
-
 ####AUTOBUSAI
 autobusai <- keleiviai %>%
   filter(!grepl("T|N|G", route_short_name))
