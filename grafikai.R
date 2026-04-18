@@ -13,11 +13,11 @@ library(shiny)
 library(plotly)
 library(scales)
 
-duomenys <- read_excel('C:/Users/emili/Desktop/Bakalauro darbas/duomenys.xlsx', sheet = 'Duomenys metiniai bakalaurui')
+duomenys <- read_excel('C:/Users/emili/Desktop/Bakalauro darbas/duomenys.xlsx', sheet = 'Duomenys metiniai')
 str(duomenys)
 
 #### 1 grafikas: Gimstamumas ir mirtingumas pagal metus ####
-ggplot(duomenys, aes(x = Metai)) +
+ggplot(duomenys%>% filter(Metai>2000), aes(x = Metai)) +
   geom_bar(aes(y = `Gimusių kūdikių sk.`, fill = 'Gyvų gimusių kūdikių sk.'), stat = 'identity', show.legend = TRUE) +
   geom_line(aes(y = `Mirusių sk.`, color = 'Mirusių žmonių sk.'),
             linewidth = 1,, group = 1, show.legend = TRUE) +
@@ -25,7 +25,7 @@ ggplot(duomenys, aes(x = Metai)) +
   scale_fill_manual(name='',values = c('Gyvų gimusių kūdikių sk.' = '#78003F')) +
   scale_color_manual(name='',values = c('Mirusių žmonių sk.' = '#E64164')) +
   scale_y_continuous(labels = scales::label_number(big.mark = ' '))+
-  scale_x_continuous(breaks = seq(1994, 2025, by = 2))+
+  scale_x_continuous(breaks = seq(2001, 2025, by = 2))+
   labs(x = 'Metai',y = 'Asmenys') +
   guides(fill = guide_legend(override.aes = list(color = NA)),
          color = guide_legend(override.aes = list(fill = NA))) +
@@ -55,19 +55,7 @@ ggplot(duomenys%>% filter(Metai >= 2001), aes(x = Metai)) +
         axis.text = element_text(size = 12),axis.title = element_text(size = 12),
         legend.text = element_text(size = 12),legend.title = element_text(size = 12))
 
-
-###3 grafikas: Gyventojų tankio priklausomybė nuo gyventojų sk.####
-ggplot(duomenys%>% filter(Metai >= 2001),aes(x = `Vidutinis gyventojų sk.`,y = `Gyventojų tankis`,
-           color = factor(Metai))) +
-  geom_point(size = 3, alpha = 0.7) +
-  geom_smooth(method = 'lm', se = FALSE, color = 'black', linetype = 'dashed') +
-  labs(color = 'Metai') +
-  theme_minimal()+
-  theme(axis.text.x = element_text(hjust = 1, vjust = 0.5),
-        axis.text = element_text(size = 12),axis.title = element_text(size = 12),
-        legend.text = element_text(size = 12),legend.title = element_text(size = 12))
-
-#### 4 grafikas: Migracija ####
+#### 3 grafikas: Migracija ####
 imigrantai <- ggplot(duomenys,aes(x = Metai,y = `Atvykusieji ir imigrantai`)) +
   geom_bar(stat = 'identity',fill = '#78003F') +
   labs(title = 'Atvykusieji ir imigrantai pagal metus',x = '',y = 'Asmenys') +
@@ -104,19 +92,19 @@ kaita
 grid.arrange(imigrantai, kaita, emigrantai, nrow=3)
 
 
-#### 5 grafikas: Interaktyvus grafikas Registrų centro ####
+#### 4 grafikas: Interaktyvus grafikas Registrų centro ####
 registru <- read.table('01_gr_open_amzius_lytis_pilietybes_sav_r1.csv',
                        sep = '|',header = TRUE,quote = '',stringsAsFactors = FALSE)
 registru<-registru%>% filter(sav_kodas==13, deklarav_metai<2026, fiz_asm_amzius!='0-6', fiz_asm_amzius!='7-17')
 
 df_amzius <- registru%>% count(fiz_asm_amzius)%>% mutate(proc = n / sum(n))
-ggplot(df_amzius, aes(x = "", y = proc, fill = factor(fiz_asm_amzius))) +
+ggplot(df_amzius, aes(x = '', y = proc, fill = factor(fiz_asm_amzius))) +
   geom_col(width = 1) +
-  coord_polar("y") +
+  coord_polar('y') +
   scale_fill_manual(values = c('#78003F', '#D3597B', '#E64164','#414141', '#8F8F8F','#DCDCDC','black'))+
-  geom_text(aes(label = ifelse(proc >= 0.03, scales::percent(proc, accuracy = 0.1),"")),
-    position = position_stack(vjust = 0.5), color = "white", size = 4) +
-  labs(fill = "Amžiaus grupė") +
+  geom_text(aes(label = ifelse(proc >= 0.03, scales::percent(proc, accuracy = 0.1),'')),
+    position = position_stack(vjust = 0.5), color = 'white', size = 4) +
+  labs(fill = 'Amžiaus grupė') +
   theme_void()
 
 
@@ -191,7 +179,7 @@ server <- function(input, output) {
 shinyApp(ui, server)
 
 
-#### 6 grafikas: Amžiaus žmonių koeficientas ####
+#### 5 grafikas: Amžiaus žmonių koeficientas ####
 #Bendrasis išlaikomo amžiaus žmonių koeficientas metų pradžioje
 amzius <- read_excel('duomenys.xlsx', sheet = 'Amžiaus koeficientas')
 
@@ -215,7 +203,7 @@ ggplot(amzius,aes(x = Metai)) +
         legend.text = element_text(size = 12),legend.title = element_text(size = 12))
 
 
-#### 7 grafikas: Bruto atlyginimas ir BVP vienam gyventojui ####
+#### 6 grafikas: Bruto atlyginimas ir BVP vienam gyventojui ####
 max_bvp <- max(duomenys$`BVP vienam gyventojui`, na.rm = TRUE)
 max_bruto <- max(duomenys$`Bruto vidutinis atlyginimas`, na.rm = TRUE)
 
@@ -240,7 +228,7 @@ ggplot(duomenys%>% filter(Metai >2009), aes(x = Metai)) +
         legend.text = element_text(size = 12),legend.title = element_text(size = 12))
 
 
-#### 8 grafikas: Gyventojų sk. pagal lyti, gimimo metus, seniunija####
+#### 7 grafikas: Gyventojų sk. pagal lyti, gimimo metus, seniunija####
 gyv_seniun <- read.csv('gyventojai seniūnijose.csv')
 gimimo_metai <- gyv_seniun%>% count(birth_year)
 lytis <- gyv_seniun%>% count(sex)%>% mutate(percent = round(n / sum(n) * 100, 1))
@@ -299,7 +287,7 @@ server <- function(input, output, session) {
   
   output$lytis_plot <- renderPlotly({
     df <- filtered_data()%>% count(sex)%>% mutate(sex = case_when(
-      sex == "M" ~ "Moterys", sex == "V" ~ "Vyrai",))
+      sex == 'M' ~ 'Moterys', sex == 'V' ~ 'Vyrai',))
     plot_ly(df, labels = ~sex, values = ~n, type = 'pie', textinfo = 'label+percent',
             marker = list(colors = c('#E64164', '#414141')))%>%
       layout(title = 'Gyventojai pagal lytį', showlegend = FALSE)})
@@ -328,87 +316,7 @@ library(corrplot)
 ggplot(duomenys, aes(x=Metai, y=`Vidutinis gyventojų sk.`)) + geom_line() + geom_point()
 modeliui<-duomenys%>% filter(duomenys$Metai>2009)%>% arrange(Metai)
 names(modeliui) <- make.names(names(duomenys))
-ggpairs(mod,upper = list(continuous = wrap("cor", size = 5)),
-        lower = list(continuous = wrap("smooth", alpha = 0.5)),
-        diag = list(continuous = "densityDiag"))
-(cor_matrix <- cor(mod))
-corrplot(cor_matrix,method = "color",type = "lower", addCoef.col = "black",
-         tl.col = "black",tl.srt = 90, tl.cex = 0.7,cl.pos = "n", tl.pos = "ld",
-  col = colorRampPalette(c("red", "white", "steelblue"))(200),
-  number.cex = 0.7, addgrid.col = "grey", diag = FALSE)
-
-#Grafikai
-kud<-ggplot(modeliui, aes(x =  Gimusių.kūdikių.sk., y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų ir gimusių kūdikių sk. sąryšis",
-       x = "Gimusių kūdikių skaičius", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-
-mir<-ggplot(modeliui, aes(x = Mirusių.sk., y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų ir mirusių žmonių sk. sąryšis",
-       x = "Mirusių žmonių skaičius", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-
-tankis<-ggplot(modeliui, aes(x = Gyventojų.tankis, y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų ir jų tankio sąryšis",
-       x = "Gyventojų tankis", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-
-bvp<-ggplot(modeliui, aes(x = BVP.vienam.gyventojui, y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų ir BVP sąryšis",
-       x = "BVP vienam gyventojui", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-bvp
-kaita<-ggplot(modeliui, aes(x = Gyventojų.kaita, y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų ir jų kaitos sąryšis",
-       x = "Gyventojų kaita", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-
-migracija<-ggplot(modeliui, aes(x = Neto.migracija, y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų skaičiaus ir migracijos sąryšis",
-       x = "Neto migracija", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-
-bruto<-ggplot(modeliui, aes(x = Bruto.vidutinis.atlyginimas, y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų skaičiaus ir Bruto vidutinio atlyginimo sąryšis",
-       x = "Bruto vidutinis atlyginimas", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-bruto
-skurdas<-ggplot(modeliui, aes(x = Skurdo.rizikos.lygis, y = Vidutinis.gyventojų.sk.)) +
-  geom_point(color = "black") + 
-  geom_smooth(method = "lm", color = "red", se = FALSE, size = 0.5) +  
-  labs(title = "Gyventojų skaičiaus ir skurdo rizikos lygio sąryšis",
-       x = "Skurdo rizikos lygis", y = "Vidutinis gyventojų sk.") +
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))
-grid.arrange(kud, mir, tankis, migracija, kaita, skurdas, bvp, bruto, ncol=3)
-
-
 ####Tiesinės regresijos modelis su mokymo ir testavimo aibem#####
-#n <- nrow(modeliui)
-#train_index <- sample(1:n, size = 0.8 * n)
-#train_data <- modeliui[train_index, ]
-#test_data  <- modeliui[-train_index, ]
 train_data <- modeliui[1:12, ]
 test_data  <- modeliui[13:16, ]
 
@@ -634,7 +542,6 @@ for(trees in num.trees.values){
         MAE = mae_val,
         Pearson = pearson_val))}}}
 results <- results[order(results$RMSE), ]
-write.csv(results, 'rf.csv')
 
 rf_model <- ranger(formula = `Vidutinis.gyventojų.sk.` ~ `Gimusių.kūdikių.sk.` + `Mirusių.sk.` + 
                      `Neto.migracija` + `Gyventojų.tankis` + `Bruto.vidutinis.atlyginimas` + 
@@ -644,9 +551,4 @@ print(rf_model)
 #Reiksmingumas
 sort(importance(rf_model),decreasing = TRUE)
 
-
-
-#XGBoost
-install.packages("xgboost")
-library(xgboost)
 
